@@ -13,7 +13,7 @@ import sys
 import copy
 from queue import Queue
 
-input_file = 'input4.txt'
+input_file = 'input5.txt'
 
 
 class Process:
@@ -65,7 +65,7 @@ def RR_scheduling(process_list, time_quantum):
             if process.arrive_time <= current_time:
                 queue.put(process)
 
-                p_list = [x for x in p_list if x.arrive_time > current_time]
+        p_list = [x for x in p_list if x.arrive_time > current_time]
 
         if current_process.burst_time != 0:
             queue.put(current_process)
@@ -88,7 +88,7 @@ def SRTF_scheduling(process_list):
     list.append(p_list[0])
     p_list.remove(p_list[0])
 
-    while len(list) != 0:
+    while len(list) > 0:
         current_process.burst_time = current_process.burst_time - 1
         current_time += 1
         schedule.append((current_time, current_process.id))
@@ -97,7 +97,7 @@ def SRTF_scheduling(process_list):
             if process.arrive_time <= current_time:
                 list.append(process)
 
-                p_list = [x for x in p_list if x.arrive_time > current_time]
+        p_list = [x for x in p_list if x.arrive_time > current_time]
 
         if current_process.burst_time == 0:
             list.remove(current_process)
@@ -111,7 +111,36 @@ def SRTF_scheduling(process_list):
 
 
 def SJF_scheduling(process_list, alpha):
-    return (["to be completed, scheduling SJF without using information from process.burst_time"], 0.0)
+    list_size, current_time, waiting_time, schedule, list, p_list = len(process_list), 0, 0, [], [], copy.deepcopy(
+        process_list)
+    current_process = p_list[0]
+    list.append(p_list[0])
+    p_list.remove(p_list[0])
+
+    while len(list) > 0:
+        # If the process does not start from 0
+        if current_time == 0:
+            current_time += current_process.arrive_time + current_process.burst_time
+        else:
+            current_time += current_process.burst_time
+        current_process.burst_time = 0
+        schedule.append((current_time, current_process.id))
+
+        for process in p_list:
+            if process.arrive_time <= current_time:
+                list.append(process)
+
+        p_list = [x for x in p_list if x.arrive_time > current_time]
+
+        if current_process.burst_time == 0:
+            list.remove(current_process)
+            waiting_time = waiting_time + (
+                    current_time - current_process.arrive_time - current_process.burst_time_copy)
+
+        if len(list) > 0:
+            current_process = min(list, key=lambda p: p.burst_time)
+
+    return (schedule, float(waiting_time) / list_size)
 
 
 def read_input():
@@ -147,9 +176,9 @@ def main(argv):
     print("simulating SRTF ----")
     SRTF_schedule, SRTF_avg_waiting_time = SRTF_scheduling(process_list)
     write_output('SRTF.txt', SRTF_schedule, SRTF_avg_waiting_time)
-    # print ("simulating SJF ----")
-    # SJF_schedule, SJF_avg_waiting_time = SJF_scheduling(process_list, alpha=0.5)
-    # write_output('SJF.txt', SJF_schedule, SJF_avg_waiting_time)
+    print("simulating SJF ----")
+    SJF_schedule, SJF_avg_waiting_time = SJF_scheduling(process_list, alpha=0.5)
+    write_output('SJF.txt', SJF_schedule, SJF_avg_waiting_time)
 
 
 if __name__ == '__main__':
