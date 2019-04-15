@@ -13,7 +13,7 @@ import sys
 import copy
 from queue import Queue
 
-input_file = 'input.txt'
+input_file = 'input4.txt'
 
 
 class Process:
@@ -184,7 +184,7 @@ def write_output(file_name, schedule, avg_waiting_time):
     with open(file_name, 'w') as f:
         for item in schedule:
             f.write(str(item) + '\n')
-        f.write('average waiting time %.2f \n' % (avg_waiting_time))
+        f.write('average waiting time %.2f \n' % avg_waiting_time)
 
 
 def main(argv):
@@ -194,39 +194,41 @@ def main(argv):
         print(process)
 
     print("\nsimulating FCFS ----")
-    print("Check output file FCFS.txt")
+    # print("Check output file FCFS.txt")
     FCFS_schedule, FCFS_avg_waiting_time = FCFS_scheduling(process_list)
     write_output('FCFS.txt', FCFS_schedule, FCFS_avg_waiting_time)
+    print("average waiting time %.2f" % FCFS_avg_waiting_time)
 
     print("\nsimulating RR ----")
-    print("Check output file RR.txt")
+    # print("Check output file RR.txt")
     RR_schedule, RR_avg_waiting_time = RR_scheduling(process_list, time_quantum=4)
     write_output('RR.txt', RR_schedule, RR_avg_waiting_time)
 
     solution = [[], float('inf'), 0.0]
     for i in range(1, 20):
         RR_schedule, RR_avg_waiting_time = RR_scheduling(process_list, time_quantum=i)
-        if RR_avg_waiting_time < solution[1]:
-            solution[0], solution[1], solution[2] = RR_schedule, RR_avg_waiting_time, i
-    print('Optimal time-quantum: {}, average waiting time: {}'.format(solution[2], solution[1]))
+    if RR_avg_waiting_time < solution[1]:
+        solution[0], solution[1], solution[2] = RR_schedule, RR_avg_waiting_time, i
+    print("Optimal alpha: %.1f, average waiting time: %.2f" % (solution[2], solution[1]))
 
     print("\nsimulating SRTF ----")
-    print("Check output file SRTF.txt")
+    # print("Check output file SRTF.txt")
     SRTF_schedule, SRTF_avg_waiting_time = SRTF_scheduling(process_list)
     write_output('SRTF.txt', SRTF_schedule, SRTF_avg_waiting_time)
+    print("average waiting time %.2f" % SRTF_avg_waiting_time)
 
     print("\nsimulating SJF ----")
-    print("Check output file SJF.txt")
+    # print("Check output file SJF.txt")
     SJF_schedule, SJF_avg_waiting_time = SJF_scheduling(process_list, alpha=0.5)
     write_output('SJF.txt', SJF_schedule, SJF_avg_waiting_time)
 
     solution = [[], float('inf'), 0.0]
     for i in range(1, 101):
         alpha = i / 100
-        SJF_schedule, SJF_avg_waiting_time = SJF_scheduling(process_list, alpha=alpha)
-        if SJF_avg_waiting_time < solution[1]:
-            solution[0], solution[1], solution[2] = SJF_schedule, SJF_avg_waiting_time, alpha
-    print('Optimal alpha: {}, average waiting time: {}'.format(solution[2], solution[1]))
+    SJF_schedule, SJF_avg_waiting_time = SJF_scheduling(process_list, alpha=alpha)
+    if SJF_avg_waiting_time < solution[1]:
+        solution[0], solution[1], solution[2] = SJF_schedule, SJF_avg_waiting_time, alpha
+    print("Optimal alpha: %.1f, average waiting time: %.2f" % (solution[2], solution[1]))
 
 
 if __name__ == '__main__':
