@@ -193,11 +193,13 @@ def main(argv):
     for process in process_list:
         print(process)
 
-    print("simulating FCFS ----")
+    print("\nsimulating FCFS ----")
+    print("Check output file FCFS.txt")
     FCFS_schedule, FCFS_avg_waiting_time = FCFS_scheduling(process_list)
     write_output('FCFS.txt', FCFS_schedule, FCFS_avg_waiting_time)
 
     print("\nsimulating RR ----")
+    print("Check output file RR.txt")
     RR_schedule, RR_avg_waiting_time = RR_scheduling(process_list, time_quantum=4)
     write_output('RR.txt', RR_schedule, RR_avg_waiting_time)
 
@@ -209,10 +211,12 @@ def main(argv):
     print('Optimal time-quantum: {}, average waiting time: {}'.format(solution[2], solution[1]))
 
     print("\nsimulating SRTF ----")
+    print("Check output file SRTF.txt")
     SRTF_schedule, SRTF_avg_waiting_time = SRTF_scheduling(process_list)
     write_output('SRTF.txt', SRTF_schedule, SRTF_avg_waiting_time)
 
     print("\nsimulating SJF ----")
+    print("Check output file SJF.txt")
     SJF_schedule, SJF_avg_waiting_time = SJF_scheduling(process_list, alpha=0.5)
     write_output('SJF.txt', SJF_schedule, SJF_avg_waiting_time)
 
