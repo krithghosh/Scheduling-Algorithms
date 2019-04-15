@@ -13,7 +13,7 @@ import sys
 import copy
 from queue import Queue
 
-input_file = 'input5.txt'
+input_file = 'input.txt'
 
 
 class Process:
@@ -24,6 +24,7 @@ class Process:
         self.arrive_time = arrive_time
         self.burst_time = burst_time
         self.burst_time_copy = burst_time
+        self.predicted_burst_time = 10
 
     # for printing purpose
     def __repr__(self):
@@ -36,7 +37,7 @@ def FCFS_scheduling(process_list):
     current_time = 0
     waiting_time = 0
     for process in process_list:
-        if (current_time < process.arrive_time):
+        if current_time < process.arrive_time:
             current_time = process.arrive_time
         schedule.append((current_time, process.id))
         waiting_time = waiting_time + (current_time - process.arrive_time)
@@ -58,8 +59,13 @@ def RR_scheduling(process_list, time_quantum):
         current_process = queue.get()
         executed_time = current_process.burst_time if current_process.burst_time < time_quantum else time_quantum
         current_process.burst_time = current_process.burst_time - executed_time
+        if current_time < current_process.arrive_time:
+            current_time = current_process.arrive_time
+
+        if len(schedule) == 0 or schedule[len(schedule) - 1][1] != current_process.id:
+            schedule.append((current_time, current_process.id))
+
         current_time = current_time + executed_time
-        schedule.append((current_time, current_process.id))
 
         for process in p_list:
             if process.arrive_time <= current_time:
@@ -78,7 +84,7 @@ def RR_scheduling(process_list, time_quantum):
             current_time = p_list[0].arrive_time
             p_list.remove(p_list[0])
 
-    return (schedule, float(waiting_time) / list_size)
+    return schedule, float(waiting_time) / list_size
 
 
 def SRTF_scheduling(process_list):
@@ -90,57 +96,76 @@ def SRTF_scheduling(process_list):
 
     while len(list) > 0:
         current_process.burst_time = current_process.burst_time - 1
+        if current_time < current_process.arrive_time:
+            current_time = current_process.arrive_time
+
+        if len(schedule) == 0 or schedule[len(schedule) - 1][1] != current_process.id:
+            schedule.append((current_time, current_process.id))
+
         current_time += 1
-        schedule.append((current_time, current_process.id))
-
-        for process in p_list:
-            if process.arrive_time <= current_time:
-                list.append(process)
-
-        p_list = [x for x in p_list if x.arrive_time > current_time]
 
         if current_process.burst_time == 0:
             list.remove(current_process)
             waiting_time = waiting_time + (
                     current_time - current_process.arrive_time - current_process.burst_time_copy)
 
+        for process in p_list:
+            if process.arrive_time <= current_time:
+                list.append(process)
+
+        if len(p_list) > 0 and len(list) == 0:
+            current_time = p_list[0].arrive_time
+            list.append(p_list[0])
+
+        p_list = [x for x in p_list if x.arrive_time > current_time]
+
         if len(list) > 0:
             current_process = min(list, key=lambda p: p.burst_time)
 
-    return (schedule, float(waiting_time) / list_size)
+    return schedule, float(waiting_time) / list_size
 
 
 def SJF_scheduling(process_list, alpha):
     list_size, current_time, waiting_time, schedule, list, p_list = len(process_list), 0, 0, [], [], copy.deepcopy(
         process_list)
-    current_process = p_list[0]
     list.append(p_list[0])
     p_list.remove(p_list[0])
+    history = dict()
 
     while len(list) > 0:
+        list = sorted(list, key=lambda p: p.predicted_burst_time)
+        current_process = list.pop(0)
+
         # If the process does not start from 0
-        if current_time == 0:
-            current_time += current_process.arrive_time + current_process.burst_time
-        else:
-            current_time += current_process.burst_time
+        if current_time < current_process.arrive_time:
+            current_time = current_process.arrive_time
+
+        if len(schedule) == 0 or schedule[len(schedule) - 1][1] != current_process.id:
+            schedule.append((current_time, current_process.id))
+
+        current_time += current_process.burst_time
         current_process.burst_time = 0
-        schedule.append((current_time, current_process.id))
+
+        last_predicted_burst_time = history[
+            current_process.id] if current_process.id in history else current_process.predicted_burst_time
+        predicted_burst_time = (alpha * current_process.burst_time_copy) + ((1 - alpha) * last_predicted_burst_time)
+        history[current_process.id] = predicted_burst_time
 
         for process in p_list:
             if process.arrive_time <= current_time:
+                if process.id in history:
+                    process.predicted_burst_time = history[process.id]
                 list.append(process)
+
+        if len(p_list) > 0 and len(list) == 0:
+            current_time = p_list[0].arrive_time
+            list.append(p_list[0])
 
         p_list = [x for x in p_list if x.arrive_time > current_time]
 
-        if current_process.burst_time == 0:
-            list.remove(current_process)
-            waiting_time = waiting_time + (
-                    current_time - current_process.arrive_time - current_process.burst_time_copy)
+        waiting_time = waiting_time + (current_time - current_process.arrive_time - current_process.burst_time_copy)
 
-        if len(list) > 0:
-            current_process = min(list, key=lambda p: p.burst_time)
-
-    return (schedule, float(waiting_time) / list_size)
+    return schedule, float(waiting_time) / list_size
 
 
 def read_input():
@@ -167,9 +192,9 @@ def main(argv):
     # print ("printing input ----")
     # for process in process_list:
     #     print (process)
-    # print ("simulating FCFS ----")
-    # FCFS_schedule, FCFS_avg_waiting_time = FCFS_scheduling(process_list)
-    # write_output('FCFS.txt', FCFS_schedule, FCFS_avg_waiting_time)
+    print("simulating FCFS ----")
+    FCFS_schedule, FCFS_avg_waiting_time = FCFS_scheduling(process_list)
+    write_output('FCFS.txt', FCFS_schedule, FCFS_avg_waiting_time)
     print("simulating RR ----")
     RR_schedule, RR_avg_waiting_time = RR_scheduling(process_list, time_quantum=4)
     write_output('RR.txt', RR_schedule, RR_avg_waiting_time)
