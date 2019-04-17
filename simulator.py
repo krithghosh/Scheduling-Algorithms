@@ -13,7 +13,7 @@ import sys
 import copy
 from queue import Queue
 
-input_file = 'input6.txt'
+input_file = 'input.txt'
 
 
 class Process:
@@ -46,9 +46,6 @@ def FCFS_scheduling(process_list):
     return schedule, average_waiting_time
 
 
-# Input: process_list, time_quantum (Positive Integer)
-# Output_1 : Schedule list contains pairs of (time_stamp, proccess_id) indicating the time switching to that proccess_id
-# Output_2 : Average Waiting Time
 def RR_scheduling(process_list, time_quantum):
     list_size, current_time, waiting_time, schedule, p_list = len(process_list), 0, 0, [], copy.deepcopy(process_list)
     queue = Queue()
@@ -95,30 +92,37 @@ def SRTF_scheduling(process_list):
     p_list.remove(p_list[0])
 
     while len(list) > 0:
+        ''' The burst time of the current process is reduced by 1 time unit. '''
         current_process.burst_time = current_process.burst_time - 1
         if current_time < current_process.arrive_time:
             current_time = current_process.arrive_time
 
+        ''' We discard inserting the current time and process id if the process id is same as the previous one. '''
         if len(schedule) == 0 or schedule[len(schedule) - 1][1] != current_process.id:
             schedule.append((current_time, current_process.id))
 
         current_time += 1
 
+        ''' The waiting total time of the process is calculated when the process is completely executed. '''
         if current_process.burst_time == 0:
             list.remove(current_process)
             waiting_time = waiting_time + (
                     current_time - current_process.arrive_time - current_process.burst_time_copy)
 
+        ''' The processes that have arrived till the current time are added to the array for processing. '''
         for process in p_list:
             if process.arrive_time <= current_time:
                 list.append(process)
 
+        ''' If the there is a time gap between the processes, this would solve it. '''
         if len(p_list) > 0 and len(list) == 0:
             current_time = p_list[0].arrive_time
             list.append(p_list[0])
 
+        ''' p_list consists for processes that have not yet been put to the array list. '''
         p_list = [x for x in p_list if x.arrive_time > current_time]
 
+        ''' When two process have the same burst time, then the process which has arrived first is considered. '''
         if len(list) > 0:
             current_process = min(list, key=lambda p: p.burst_time)
 
