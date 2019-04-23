@@ -223,7 +223,7 @@ def main(argv):
     write_output('SJF.txt', SJF_schedule, SJF_avg_waiting_time)
 
     solution = [[], float('inf'), 0.0]
-    for i in range(1, 101):
+    for i in range(0, 101):
         alpha = i / 100
         SJF_schedule, SJF_avg_waiting_time = SJF_scheduling(process_list, alpha=alpha)
         if SJF_avg_waiting_time < solution[1]:
